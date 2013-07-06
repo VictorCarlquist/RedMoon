@@ -9,7 +9,8 @@ Features:
 - Import Wavefront files (.obj)
 
 Dependencies
-		SDL
-		OpenGL
-    Lua 5.2 -dev
- 		GLUT
+------------
+- SDL
+- OpenGL
+- Lua 5.2 -dev
+- GLUT
