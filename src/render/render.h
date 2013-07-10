@@ -1,5 +1,6 @@
 #include "../scene/scene.h"
 #include "../camera/camera.h"
+#include "../light/light.h"
 #include <iostream>
 #include <lua5.2/lua.hpp>
 
@@ -17,16 +18,20 @@ namespace red
 		public:
 			Rrender(void);
 			Rrender(Rscene *);
-            void initWindow(int , int, float near, float far);
-			Rscene* getScene(void);
-			void setScene(Rscene *);
-            void setCamera(Rcamera *);
-			void draw(void *);
-			void render(void);
-			Rscene *scene;
+
+            Rscene  *getScene(void);
+            Rscene  *scene;
             Rcamera *camera;
+
+            void    initWindow(int , int, float near, float far, bool fullScreen);
+            void    setScene(Rscene *);
+            void    setCamera(Rcamera *);
+            void    draw(void *);
+            void    render(void);
+            void    loadLights();
+
 		private:
-			string typeObj;
+            string  typeObj;
 			
 	};
 	void RegisterRrender(lua_State *l);

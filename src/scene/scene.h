@@ -1,5 +1,6 @@
 #include "../object/object.h"
 #include "../wavefront/wavefront.h"
+#include "../light/light.h"
 
 #include <vector>
 #include <iostream>
@@ -20,9 +21,10 @@ namespace red
             std::vector<Rwavefront*> getWavefrontObjects();
             void	addWavefront(Rwavefront *);
             void	removeWavefront(Rwavefront *);
+            void    addLightLamp(RlightLamp* obj);
             //void	setObject(Robject *); //array de objetos
             std::vector<Rwavefront*> WavefrontObjects;
-
+            std::vector<RlightLamp*> LightLamps;
 
     };
 void RegisterRscene(lua_State *l);

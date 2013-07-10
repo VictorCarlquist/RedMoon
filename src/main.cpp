@@ -29,6 +29,7 @@ int main(int argc, char** argv)
 	for(i=0;i<20000;i++)
 		render->render();
 	*/
+
 	lua_State *l = luaL_newstate();
     luaL_openlibs(l);
     
@@ -38,8 +39,7 @@ int main(int argc, char** argv)
     RegisterRwavefront(l);
     RegisterRlocate(l);
     RegisterRcamera(l);
-
-
+    RegisterRlightLamp(l);
 	
 	if(argv[1] != NULL)
 	{

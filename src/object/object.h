@@ -1,6 +1,7 @@
 #include "../locate/locate.h"
 
 #include <GL/glut.h>
+#include <vector>
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
 namespace red
@@ -17,8 +18,8 @@ namespace red
             Robject(const char*);
             ~Robject();
             const char* getUID();
-            Vertex3*	getMesh();
-            void	setMesh(Vertex3 *);
+            std::vector<GLfloat> getMesh();
+            void	setMesh(std::vector<GLfloat> me);
             void	setScale(float x, float y, float z);
             void    setScaleX(float x);
             void    setScaleY(float y);
@@ -28,10 +29,10 @@ namespace red
             float	getScaleZ();
 			void 	loadFileOBJ(char *);
 			char type;
-		protected:
-            Vertex3 *mesh;
-			float *uv;
-			float *normal;
+            std::vector<float> mesh;
+            std::vector<float> uv;
+            std::vector<float> normal;
+        protected:
             const char* uid;
             float sx,sy,sz;
 	};

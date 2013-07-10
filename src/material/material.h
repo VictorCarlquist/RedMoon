@@ -18,7 +18,8 @@ namespace red
             std::vector<std::vector<float> > diffuse;
             std::vector<std::vector<float> > ambient;
             GLuint textureId;
-            int specularCof;
+            float specularCof;
+            float transparent;
 
 		private:
 

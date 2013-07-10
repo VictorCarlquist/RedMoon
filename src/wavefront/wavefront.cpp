@@ -3,9 +3,12 @@
 #include <fstream>
 #include <cstdlib>
 #include <cstring>
-#include <GL/glut.h>
+
 #include <vector>
 
+
+#include <GL/glew.h>
+#include <GL/glut.h>
 #include <SOIL/SOIL.h>
 
 #include "../util/util.h"
@@ -55,6 +58,7 @@ namespace red
                     {
                         Rwavefront *obj = new Rwavefront(line.substr(2).c_str());
                         this->loadFileChild(&file,obj,absol);
+                        this->createMesh(obj);
                         this->listObjects.push_back(obj);
 
 
@@ -130,7 +134,9 @@ namespace red
 
 
 			file.close();
+            this->createMesh(this);
         }
+
 
 	}
     void Rwavefront::loadMaterial(const char *path)
@@ -178,13 +184,15 @@ namespace red
                     mat->specular.push_back(tmp);
                     vtmp.clear();
                 }
-                if(line.substr(0,3) == "Ns")
+                if(line.substr(0,2) == "Ns")
                 {
-                    vtmp = split(line.substr(3)," ");
-                    mat->specularCof = atoi(vtmp[i].c_str());
-                    vtmp.clear();
+                    mat->specularCof = atof(line.substr(3).c_str());
                 }
-               if(line.substr(0,6) == "map_Kd")
+                if(line.substr(0,1) == "d")
+                    mat->transparent = atof(line.substr(3).c_str());
+                if(line.substr(0,2) == "Tr")
+                    mat->transparent = atof(line.substr(3).c_str());
+                if(line.substr(0,6) == "map_Kd")
                 {
 
                     int width,height;
@@ -297,6 +305,56 @@ namespace red
 
             file->close();
         }
+    }
+
+    void Rwavefront::createMesh(Rwavefront *obj)
+    {
+        int j;
+        for(j=0;j<obj->faces.size();++j)
+        {
+           /*glColor4f(j*0.1, 0.5f, 0.0f, 1.0f);
+            if(!obj->uvs.empty())
+                if(lObj->faces[j][1]-1 < obj->uvs.size())
+                    glTexCoord2f(obj->uvs[lObj->faces[j][1]-1][0],obj->uvs[lObj->faces[j][1]-1][1]);
+           // cout << obj->uvs[obj->faces[j][1]-1][0] << endl;
+
+            if(!obj->normals.empty())
+                if(lObj->faces[j][2]-1 < obj->faces.size())
+                    glNormal3f(obj->normals[lObj->faces[j][2]-1][0],obj->normals[lObj->faces[j][2]-1][1],obj->normals[lObj->faces[j][2]-1][2]);
+            */
+
+            //Vertex
+            obj->mesh.push_back(this->vertices[obj->faces[j][0]-1][0]);
+            obj->mesh.push_back(this->vertices[obj->faces[j][0]-1][1]);
+            obj->mesh.push_back(this->vertices[obj->faces[j][0]-1][2]);
+
+            //Normals
+            if(!this->normals.empty())
+                if(obj->faces[j][2]-1 < this->normals.size())
+                {
+                    obj->mesh.push_back(this->normals[obj->faces[j][2]-1][0]);
+                    obj->mesh.push_back(this->normals[obj->faces[j][2]-1][1]);
+                    obj->mesh.push_back(this->normals[obj->faces[j][2]-1][2]);
+                }
+            //UV
+            if(!this->uvs.empty())
+                if(obj->faces[j][1]-1 < this->uvs.size())
+                {
+                    obj->mesh.push_back(this->uvs[obj->faces[j][1]-1][0]);
+                    obj->mesh.push_back(this->uvs[obj->faces[j][1]-1][1]);
+                    obj->mesh.push_back(this->uvs[obj->faces[j][1]-1][2]);
+                    obj->isUv = true;
+                }
+                    //glVertex3f(obj->vertices[lObj->faces[j][0]-1][0],obj->vertices[lObj->faces[j][0]-1][1],obj->vertices[lObj->faces[j][0]-1][2] );
+           //
+        }
+
+        // Allocate the buffer
+        //glGenBuffers(1, &obj->vertexId);
+        //glBindBuffer(GL_ARRAY_BUFFER, obj->vertexId);
+        //glBufferData(GL_ARRAY_BUFFER, sizeof(float) * obj->mesh.size(), &obj->mesh[0], GL_DYNAMIC_DRAW);
+        //glVertexPointer(3, GL_FLOAT, GL_FALSE,0, 0);
+        //glVertexAttribPointer(obj->vertexId, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 );
     }
 
     Rwavefront * l_CheckRwavefront(lua_State * l, int n)

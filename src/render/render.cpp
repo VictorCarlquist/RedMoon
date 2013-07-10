@@ -1,14 +1,24 @@
+
+
 #include <iostream>
 #include <cmath>
 
+
+#include <GL/glew.h>
 #include "render.h"
 #include "../material/material.h"
 
+
 #include <SDL/SDL.h>
-#include <GL/gl.h>
+
+#include <GL/glut.h>
+
+
 #include <lua5.2/lua.hpp>
 
 #include <SOIL/SOIL.h>
+
+
 
 namespace red
 {
@@ -30,47 +40,78 @@ namespace red
 		return this->scene;
 	}
 	
-    void Rrender::initWindow(int w, int h, float near, float far)
-	{
+    void Rrender::initWindow(int w, int h, float near, float far, bool fullScreen)
+    {
         atexit(SDL_Quit);
         if( SDL_Init(SDL_INIT_VIDEO) < 0 ) {
             fprintf(stderr,"Couldn't initialize SDL: %s\n", SDL_GetError());
             exit(1);
         }
 
-         SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 ); // *new*
+        SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 ); // *new*
 
-        SDL_Surface *screen = SDL_SetVideoMode(w, h, 32, SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL);
-
-		glViewport(0, 0, w, h);
+        if(fullScreen)
+            SDL_Surface *screen = SDL_SetVideoMode(w, h, 32, SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL | SDL_FULLSCREEN);
+        else
+            SDL_Surface *screen = SDL_SetVideoMode(w, h, 32, SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL);
+        glViewport(0, 0, w, h);
         glMatrixMode(GL_PROJECTION);
         gluPerspective(45, w / h, (GLfloat)near,(GLfloat)far);
 
-		glMatrixMode(GL_MODELVIEW);
+        glMatrixMode(GL_MODELVIEW);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
         glDepthFunc(GL_LEQUAL);
         glShadeModel(GL_FLAT);
-        glEnable(GL_BLEND);
+        glEnable (GL_BLEND);
+        //glBlendFunc (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        //glDepthMask(GL_FALSE);
+
         glEnable(GL_NORMALIZE);
 
         glClearColor( 0.0, 0.0, 1.0, 1.0 );
         glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
+        // Create light components
+        /* glEnable(GL_LIGHT1);
+        GLfloat ambientLight[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+        GLfloat diffuseLight[] = { 0.8f, 0.8f, 0.8, 1.0f };
+        GLfloat specularLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+        GLfloat position[] = { -1.5f, 1.0f, -4.0f, 1.0f };
+
+        // Assign created components to GL_LIGHT0
+        glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight);
+        glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight);
+        glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight);
+        glLightfv(GL_LIGHT1, GL_POSITION, position);
+        */
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-        GLfloat ambientColor[] = {0.5, 1, 1, 1.0f}; //Color(0.2, 0.2, 0.2)
-        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
-        GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
-        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	}
-/*	void *Rrender::rendering(void *)
-	{
-
+        glewInit();
 
 	}
-*/
+
+    void Rrender::loadLights()
+    {
+        int i;
+        int LIGHTn = 0x4000; // == GL_LIGHT0 enum
+        if(!this->scene->LightLamps.empty())
+        {
+            glEnable(LIGHTn);
+            glShadeModel(GL_SMOOTH);
+            for(i = 0; i < this->scene->LightLamps.size();++i)
+            {
+                RlightLamp *lamp = this->scene->LightLamps[i];
+                glLightfv(LIGHTn, GL_AMBIENT, lamp->getAmbient());
+                glLightfv(LIGHTn, GL_DIFFUSE, lamp->getDiffuse());
+                glLightfv(LIGHTn, GL_SPECULAR, lamp->getSpecular());
+                float pos[4] = {lamp->getLocX(),lamp->getLocY(),lamp->getLocZ(),1.0f};
+
+                glLightfv(LIGHTn, GL_POSITION, pos);
+            }
+        }
+    }
+
 	void Rrender::render(void)
-	{
+    {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glMatrixMode(GL_MODELVIEW);
@@ -120,8 +161,8 @@ namespace red
 
                     }
 
-                    glBegin(GL_TRIANGLES);
-
+                    //glBegin(GL_TRIANGLES);
+                   /*
                     for(j=0;j<obj->faces.size();j++)
                     {
                         if(!obj->uvs.empty())
@@ -129,10 +170,25 @@ namespace red
                        // cout << obj->uvs[obj->faces[j][1]-1][0] << endl;
                         if(!obj->normals.empty())
                             glNormal3f(obj->normals[obj->faces[j][2]-1][0],obj->normals[obj->faces[j][2]-1][1],obj->normals[obj->faces[j][2]-1][2]);
-                        glVertex3f(obj->vertices[obj->faces[j][0]-1][0],obj->vertices[obj->faces[j][0]-1][1],obj->vertices[obj->faces[j][0]-1][2] );
+                       // glVertex3f(obj->vertices[obj->faces[j][0]-1][0],obj->vertices[obj->faces[j][0]-1][1],obj->vertices[obj->faces[j][0]-1][2] );
+
                     }
                     glEnd();
+                    */
 
+                    glEnableClientState(GL_NORMAL_ARRAY);
+                    glEnableClientState(GL_VERTEX_ARRAY);
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                        //glBindBuffer(GL_ARRAY_BUFFER, obj->vertexId);
+
+                        glNormalPointer(GL_FLOAT, 9 * sizeof(GLfloat), &obj->mesh[0] + 3);
+                        glTexCoordPointer(2, GL_FLOAT, 9 * sizeof(GLfloat), &obj->mesh[0] + 6);
+                        glVertexPointer(3, GL_FLOAT,9 * sizeof(GLfloat), &obj->mesh[0]);
+
+                        glDrawArrays(GL_TRIANGLES,0,(sizeof(float)*obj->mesh.size())/sizeof(float)/9);
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    glDisableClientState(GL_VERTEX_ARRAY);
+                    glDisableClientState(GL_NORMAL_ARRAY);
                 }else{
 
 
@@ -171,6 +227,7 @@ namespace red
                             }
 
 
+/*
                         glBegin(GL_TRIANGLES);
 
                         for(j=0;j<lObj->faces.size();++j)
@@ -190,13 +247,37 @@ namespace red
                         }
                         glEnd();
 
+                        */
+
+
+                        int x = 6;
+                        if(lObj->isUv)
+                            x = 9;
+                        glEnableClientState(GL_NORMAL_ARRAY);
+                        glEnableClientState(GL_VERTEX_ARRAY);
+                        if(lObj->isUv)
+                            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                            //glBindBuffer(GL_ARRAY_BUFFER, obj->vertexId);
+
+                        glVertexPointer(3, GL_FLOAT,sizeof(float)*x, &lObj->mesh[0]);
+                        glNormalPointer(GL_FLOAT, sizeof(float)*x, &lObj->mesh[0]+3);
+                        if(lObj->isUv)
+                            glTexCoordPointer(2, GL_FLOAT, 9 * sizeof(float), &lObj->mesh[0] + 6);
+
+                        glDrawArrays(GL_TRIANGLES,0,lObj->mesh.size()/x);
+
+                        if(lObj->isUv)
+                            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                        glDisableClientState(GL_VERTEX_ARRAY);
+                        glDisableClientState(GL_NORMAL_ARRAY);
+
                     }
                 }
                 glPopMatrix();
             }
 
         }
-
+        this->loadLights();
 		SDL_GL_SwapBuffers();
 		
 		
@@ -270,7 +351,8 @@ namespace red
 		int b = luaL_checknumber(l, 3);
         float near = luaL_checknumber(l, 4);
         float far = luaL_checknumber(l, 5);
-        render->initWindow(a,b,near, far);
+        bool fullscreen = lua_toboolean( l, 6 );
+        render->initWindow(a,b,near, far, fullscreen);
 
 		return 1;
 	}

@@ -13,10 +13,6 @@
 #define __WAVEFRONT__
 namespace red
 {
-    typedef struct {
-        int width;
-        int height;
-    }Rsize;
 
     class Rwavefront: public Robject
 	{
@@ -25,12 +21,18 @@ namespace red
             Rwavefront(const char* uid):Robject(uid)
             {
                 this->smooth = false;
+                this->isUv = false;
             }
 			~Rwavefront();
             std::vector<std::vector<float> > vertices, normals, uvs;
             std::vector<std::vector<int> > faces;
             std::vector<Rwavefront *> listObjects;
             bool smooth;
+
+            unsigned int vertexId;
+            unsigned int normalId;
+            unsigned int uvId;
+            bool isUv;
 
 
             std::map<std::string, Rmaterial *> listMaterials;
@@ -41,6 +43,7 @@ namespace red
             void loadFileChild(std::ifstream *file, Rwavefront *obj, std::string absol);
             void loadFile(const char *, bool isChild  = false);
             void loadMaterial(const char * );
+            void createMesh(Rwavefront *obj);
 
 	};
     void RegisterRwavefront(lua_State *l);

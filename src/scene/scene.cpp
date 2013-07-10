@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <cstdlib>
 #include <cstring>
@@ -23,6 +23,10 @@ namespace red
 	{	
         this->WavefrontObjects.push_back(obj);
 	}
+    void Rscene::addLightLamp(RlightLamp* obj)
+    {
+        this->LightLamps.push_back(obj);
+    }
 
 	void Rscene::removeWavefront(Rwavefront *obj)
 	{
@@ -76,6 +80,16 @@ namespace red
         foo->addWavefront(w);
 		return 0;
     }
+    int l_Rscene_addLightLamp(lua_State * l)
+    {
+        //initWindow(argc,argv,400,400);
+        Rscene * s = l_CheckRscene(l, 1);
+        RlightLamp *w = l_CheckRlightLamp(l, 2);
+
+
+        s->addLightLamp(w);
+        return 0;
+    }
 
 	int l_Rscene_destructor(lua_State * l)
 	{
@@ -93,7 +107,8 @@ namespace red
 		    { "__gc", l_Rscene_destructor },
 			{"name",},
             {"addWavefront",l_Rscene_addWavefront},
-		    { NULL, NULL }
+            {"addLightLamp",l_Rscene_addLightLamp},
+            { NULL, NULL }
 		};
 
 		// Create a luaL metatable. This metatable is not 

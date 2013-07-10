@@ -14,11 +14,11 @@ namespace red
     }
     Robject::~Robject(){}
 
-    Vertex3* 	Robject::getMesh()
+    std::vector<GLfloat> Robject::getMesh()
 	{
 		return this->mesh;
 	}
-    void 	Robject::setMesh(Vertex3 *me)
+    void 	Robject::setMesh(std::vector<GLfloat> me)
 	{
 		this->mesh = me;	
 	}
