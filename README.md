@@ -14,3 +14,7 @@ Dependencies
 - OpenGL
 - Lua 5.2 -dev
 - GLUT
+
+Run
+-----------
+- ./redMoon game.lua
