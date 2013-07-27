@@ -1,6 +1,7 @@
 #include "locate.h"
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 
 namespace red
 {
@@ -42,6 +43,16 @@ namespace red
         this->rz = fmod(a,360);
 	}
 
+    float* Rlocate::getLoc()
+    {
+        float* pos = (float*) malloc(sizeof(float) * 4);
+        pos[0] = this->lx;
+        pos[1] = this->ly;
+        pos[2] = this->lz;
+        pos[3] = 1;
+
+        return pos;
+    }
 	float Rlocate::getLocX()
 	{
 		return this->lx;
@@ -222,9 +233,11 @@ namespace red
         {
             { "new", l_Rlocate_constructor },
 
+            { "setLoc", l_Rlocate_setLoc },
             { "setLocX", l_Rlocate_setLocX },
             { "setLocY", l_Rlocate_setLocY },
             { "setLocZ", l_Rlocate_setLocZ },
+
             { "getLocX", l_Rlocate_getLocX },
             { "getLocY", l_Rlocate_getLocY },
             { "getLocZ", l_Rlocate_getLocZ },

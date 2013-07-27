@@ -1,27 +1,24 @@
 
-
 #include <iostream>
 #include <cmath>
 
-
 #include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "render.h"
 #include "../material/material.h"
+#include "../text/text.h"
 
 
 #include <SDL/SDL.h>
-
-#include <GL/glut.h>
-
-
+//#include <GL/glut.h>
 #include <lua5.2/lua.hpp>
-
 #include <SOIL/SOIL.h>
-
 
 
 namespace red
 {
+
 	Rrender::Rrender(void){}
 	Rrender::Rrender(Rscene *cena)
 	{
@@ -40,6 +37,82 @@ namespace red
 		return this->scene;
 	}
 	
+    // Loading shader function
+    GLhandleARB loadShader(char* filename, unsigned int type)
+    {
+        FILE *pfile;
+        GLhandleARB handle;
+        const GLcharARB* files[1];
+
+        // shader Compilation variable
+        GLint result;				// Compilation code result
+        GLint errorLoglength ;
+        char* errorLogText;
+        GLsizei actualErrorLogLength;
+
+        char buffer[400000];
+        memset(buffer,0,400000);
+
+        // This will raise a warning on MS compiler
+        pfile = fopen(filename, "rb");
+        if(!pfile)
+        {
+            printf("Sorry, can't open file: '%s'.\n", filename);
+            exit(0);
+        }
+
+        fread(buffer,sizeof(char),400000,pfile);
+        //printf("%s\n",buffer);
+
+
+        fclose(pfile);
+
+        handle = glCreateShaderObjectARB(type);
+        if (!handle)
+        {
+            //We have failed creating the vertex shader object.
+            printf("Failed creating vertex shader object from file: %s.",filename);
+            exit(0);
+        }
+
+        files[0] = (const GLcharARB*)buffer;
+        glShaderSourceARB(
+                          handle, //The handle to our shader
+                          1, //The number of files.
+                          files, //An array of const char * data, which represents the source code of theshaders
+                          NULL);
+
+        glCompileShaderARB(handle);
+
+        //Compilation checking.
+        glGetObjectParameterivARB(handle, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+
+        // If an error was detected.
+        if (!result)
+        {
+            //We failed to compile.
+            printf("Shader '%s' failed compilation.\n",filename);
+
+            //Attempt to get the length of de aplicar a sombra consiste em renderizar a cena vista da posição da câmera, e para cada pixel criado, o mesmo é transformado para a visão da luz. Então é feita uma comparação da distancia desse pixel com a luz e o valor armazenado no shadow map. Se a distância pixel-luz for maior que o valor armazenado no shadow map entã our error log.
+            glGetObjectParameterivARB(handle, GL_OBJECT_INFO_LOG_LENGTH_ARB, &errorLoglength);
+
+            //Create a buffer to read compilation error message
+            //errorLogText = malloc(sizeof(char) * errorLoglength);
+
+            //Used to get the final length of the log.
+            //glGetInfoLogARB(handle, errorLoglength, &actualErrorLogLength, errorLogText);
+
+            // Display errors.
+            //printf("%s\n",errorLogText);
+
+            // Free the buffer malloced earlier
+            free(errorLogText);
+        }
+
+        return handle;
+    }
+
+
     void Rrender::initWindow(int w, int h, float near, float far, bool fullScreen)
     {
         atexit(SDL_Quit);
@@ -48,7 +121,8 @@ namespace red
             exit(1);
         }
 
-        SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 ); // *new*
+
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
         if(fullScreen)
             SDL_Surface *screen = SDL_SetVideoMode(w, h, 32, SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL | SDL_FULLSCREEN);
@@ -56,35 +130,25 @@ namespace red
             SDL_Surface *screen = SDL_SetVideoMode(w, h, 32, SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_OPENGL);
         glViewport(0, 0, w, h);
         glMatrixMode(GL_PROJECTION);
-        gluPerspective(45, w / h, (GLfloat)near,(GLfloat)far);
+        gluPerspective(60, w / h, (GLfloat)near,(GLfloat)far);
 
         glMatrixMode(GL_MODELVIEW);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
-        glDepthFunc(GL_LEQUAL);
+
         glShadeModel(GL_FLAT);
         glEnable (GL_BLEND);
-        //glBlendFunc (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-        //glDepthMask(GL_FALSE);
+        glEnable(GL_CULL_FACE);
 
         glEnable(GL_NORMALIZE);
 
         glClearColor( 0.0, 0.0, 1.0, 1.0 );
-        glEnable(GL_LIGHTING);
-        // Create light components
-        /* glEnable(GL_LIGHT1);
-        GLfloat ambientLight[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-        GLfloat diffuseLight[] = { 0.8f, 0.8f, 0.8, 1.0f };
-        GLfloat specularLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-        GLfloat position[] = { -1.5f, 1.0f, -4.0f, 1.0f };
 
-        // Assign created components to GL_LIGHT0
-        glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight);
-        glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight);
-        glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight);
-        glLightfv(GL_LIGHT1, GL_POSITION, position);
-        */
+        glEnable(GL_LIGHTING);
+
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+        glEnable(GL_NORMALIZE);
         glewInit();
 
 	}
@@ -95,10 +159,11 @@ namespace red
         int LIGHTn = 0x4000; // == GL_LIGHT0 enum
         if(!this->scene->LightLamps.empty())
         {
-            glEnable(LIGHTn);
+
             glShadeModel(GL_SMOOTH);
             for(i = 0; i < this->scene->LightLamps.size();++i)
             {
+                glEnable(LIGHTn);
                 RlightLamp *lamp = this->scene->LightLamps[i];
                 glLightfv(LIGHTn, GL_AMBIENT, lamp->getAmbient());
                 glLightfv(LIGHTn, GL_DIFFUSE, lamp->getDiffuse());
@@ -106,21 +171,15 @@ namespace red
                 float pos[4] = {lamp->getLocX(),lamp->getLocY(),lamp->getLocZ(),1.0f};
 
                 glLightfv(LIGHTn, GL_POSITION, pos);
+               //glDisable(LIGHTn);
+
             }
+
         }
     }
 
-	void Rrender::render(void)
+    void Rrender::draw()
     {
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        gluLookAt (this->camera->getLocX(), this->camera->getLocY(), this->camera->getLocZ(),
-           this->camera->getLocTX(),this->camera->getLocTY(),this->camera->getLocTZ(),
-        0,1,0);
-
 
         if(this->scene != NULL && this->camera != NULL)
         {
@@ -132,12 +191,12 @@ namespace red
                 obj = this->scene->WavefrontObjects[i];
 
                 glPushMatrix();
-
                 glTranslatef (obj->getLocX(), obj->getLocY(), obj->getLocZ());
                 glRotatef (obj->getRotX(), 1,0,0);
                 glRotatef (obj->getRotY(), 0,1,0);
                 glRotatef (obj->getRotZ(), 0,0,1);
                 glScalef(obj->getScaleX(),obj->getScaleY(),obj->getScaleZ());
+
 
                 if(obj->listObjects.empty())
                 {
@@ -147,6 +206,7 @@ namespace red
                         glShadeModel(GL_FLAT);
 
                     Rmaterial *mat = obj->listMaterials[obj->textureName];
+
                     if(mat->textureId != 0)
                     {
                         glBindTexture(GL_TEXTURE_2D, mat->textureId);
@@ -176,24 +236,31 @@ namespace red
                     glEnd();
                     */
 
+                    int x = 6;
+                    if(obj->isUv)
+                        x = 9;
                     glEnableClientState(GL_NORMAL_ARRAY);
                     glEnableClientState(GL_VERTEX_ARRAY);
-                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+                    if(obj->isUv)
+                        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
                         //glBindBuffer(GL_ARRAY_BUFFER, obj->vertexId);
 
-                        glNormalPointer(GL_FLOAT, 9 * sizeof(GLfloat), &obj->mesh[0] + 3);
+                        glNormalPointer(GL_FLOAT, x * sizeof(GLfloat), &obj->mesh[0] + 3);
+                    if(obj->isUv)
                         glTexCoordPointer(2, GL_FLOAT, 9 * sizeof(GLfloat), &obj->mesh[0] + 6);
-                        glVertexPointer(3, GL_FLOAT,9 * sizeof(GLfloat), &obj->mesh[0]);
+                    glVertexPointer(3, GL_FLOAT,x * sizeof(GLfloat), &obj->mesh[0]);
 
-                        glDrawArrays(GL_TRIANGLES,0,(sizeof(float)*obj->mesh.size())/sizeof(float)/9);
-                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                        glDrawArrays(GL_TRIANGLES,0,(sizeof(float)*obj->mesh.size())/sizeof(float)/x);
+                    if(obj->isUv)
+                       glDisableClientState(GL_TEXTURE_COORD_ARRAY);
                     glDisableClientState(GL_VERTEX_ARRAY);
                     glDisableClientState(GL_NORMAL_ARRAY);
                 }else{
 
-
                     for(k = 0; k < obj->listObjects.size();++k)
                     {
+
                         Rwavefront *lObj;
                         lObj = obj->listObjects[k];
 
@@ -227,29 +294,6 @@ namespace red
                             }
 
 
-/*
-                        glBegin(GL_TRIANGLES);
-
-                        for(j=0;j<lObj->faces.size();++j)
-                        {
-                           // glColor4f(j*0.1, 0.5f, 0.0f, 1.0f);
-                            if(!obj->uvs.empty())
-                                if(lObj->faces[j][1]-1 < obj->uvs.size())
-                                    glTexCoord2f(obj->uvs[lObj->faces[j][1]-1][0],obj->uvs[lObj->faces[j][1]-1][1]);
-                           // cout << obj->uvs[obj->faces[j][1]-1][0] << endl;
-
-                            if(!obj->normals.empty())
-                                if(lObj->faces[j][2]-1 < obj->faces.size())
-                                    glNormal3f(obj->normals[lObj->faces[j][2]-1][0],obj->normals[lObj->faces[j][2]-1][1],obj->normals[lObj->faces[j][2]-1][2]);
-
-                            glVertex3f(obj->vertices[lObj->faces[j][0]-1][0],obj->vertices[lObj->faces[j][0]-1][1],obj->vertices[lObj->faces[j][0]-1][2] );
-                           //
-                        }
-                        glEnd();
-
-                        */
-
-
                         int x = 6;
                         if(lObj->isUv)
                             x = 9;
@@ -273,56 +317,37 @@ namespace red
 
                     }
                 }
+
                 glPopMatrix();
+
             }
 
         }
+    }
+
+
+	void Rrender::render(void)
+    {
+
+        //First pass - from light's point of view
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(1.0f, 1.0f, 1.0f, 1000.0f);
+        glLoadIdentity();
+
+
+        gluLookAt (this->camera->getLocX(), this->camera->getLocY(), this->camera->getLocZ(),
+           this->camera->getLocTX(), this->camera->getLocTY(),this->camera->getLocTZ(),
+            0,1,0);
+
         this->loadLights();
+        this->draw();
+
+
 		SDL_GL_SwapBuffers();
 		
 		
 	}
-	/*
-	void render(void) 
-	{
-	   glColor3f(0.0, 0.0, 1.0);
-	   glPushMatrix ();
-	   glRotatef (30.0, 1.0, 0.0, 0.0);
-	   glPushMatrix ();
-	   glTranslatef (-0.80, 0.35, 0.0); 
-	   glRotatef (100.0, 1.0, 0.0, 0.0);
-	//   glutSolidTorus (0.275, 0.85, 16, 16);
-	   glutWireTorus (0.275, 0.85, 16, 16);
-	   glPopMatrix ();
 
-	   glColor3f(1.0, 0.0, 0.0);
-	   glPushMatrix ();
-	   glTranslatef (-0.75, -0.50, 0.0); 
-	   glRotatef (10.0, 0.0, 0.0, 1.0);
-	   glRotatef (10.0, 1.0, 0.0, 0.0);
-	//   glutSolidCube (1.5);
-	   glutWireCube (1.5);
-	   glPopMatrix ();
-
-	   glColor3f(0.0, 1.0, 0.0);
-	   glPushMatrix ();
-	   glTranslatef (0.75, 0.60, 0.0); 
-	   glRotatef (30.0, 1.0, 0.0, 0.0);
-	//   glutSolidSphere (1.0, 16, 16);
-	   glutWireSphere (1.0, 16, 16);
-	   glPopMatrix ();
-
-	   glColor3f(1.0, 1.0, 0.0);
-	   glPushMatrix ();
-	   glTranslatef (0.70, -0.90, 0.25); 
-	//   glutSolidOctahedron ();
-	   glutWireOctahedron ();
-	   glPopMatrix ();
-
-	   glPopMatrix ();
-	   glutSwapBuffers();
-	}
-	*/
 	int l_Rrender_constructor(lua_State * l)
 	{
 		//const char * name = luaL_checkstring(l, 1);

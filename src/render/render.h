@@ -26,7 +26,7 @@ namespace red
             void    initWindow(int , int, float near, float far, bool fullScreen);
             void    setScene(Rscene *);
             void    setCamera(Rcamera *);
-            void    draw(void *);
+            void    draw();
             void    render(void);
             void    loadLights();
 

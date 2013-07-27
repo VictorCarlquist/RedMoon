@@ -25,8 +25,8 @@ namespace red
     void 	Robject::setScale(float x, float y, float z)
     {
         this->sx = x;
-        this->sy = x;
-        this->sz = x;
+        this->sy = y;
+        this->sz = z;
     }
     void 	Robject::setScaleX(float x)
     {

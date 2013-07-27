@@ -17,7 +17,8 @@ namespace red
 			void setLocY(float y);
 			void setLocZ(float z);
 		
-			float getLocX();
+            float* getLoc();
+            float getLocX();
 			float getLocY();
 			float getLocZ();
 		
