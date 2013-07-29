@@ -34,8 +34,8 @@ int main(int argc, char** argv)
     luaL_openlibs(l);
     
 	RegisterRrender(l);
+    RegisterRkeyboard(l);
 	RegisterRscene(l);
-	RegisterRkeyboard(l);
     RegisterRwavefront(l);
     RegisterRlocate(l);
     RegisterRcamera(l);

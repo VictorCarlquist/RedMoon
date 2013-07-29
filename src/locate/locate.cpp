@@ -9,19 +9,19 @@ namespace red
 	{
 		this->lx = x;
 		this->ly = y;
-		this->lz = z;
+        this->lz = z;
 	}
 	void Rlocate::setLocX(float a)
 	{
-		this->lx = a;
+        this->lx = a;
 	}
 	void Rlocate::setLocY(float a)
 	{
-		this->ly = a;
+        this->ly = a;
 	}
 	void Rlocate::setLocZ(float a)
 	{
-		this->lz = a;
+        this->lz = a;
 	}
 
 	void Rlocate::setRot(float x,float y,float z)
@@ -77,7 +77,7 @@ namespace red
 	float Rlocate::getRotZ()
 	{
 		return this->rz;
-	}
+    }
 
     int l_Rlocate_constructor(lua_State * l)
     {

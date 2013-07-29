@@ -2,12 +2,14 @@
 //
 // LICENSE: Do whatever you want. No warranty is implied or given. The code is
 // released as-is... you're on your own.
-//
-#ifndef _LUA_TYPED_ENUMS_H_
-#define _LUA_TYPED_ENUMS_H_
+
 
 #include <iostream>
 #include <sstream>
+
+#ifndef _LUA_TYPED_ENUMS_H_
+#define _LUA_TYPED_ENUMS_H_
+
 
 
 // Adds an enumerated type into Lua.
@@ -36,7 +38,7 @@
 // You can print the actual value in Lua by:
 //  > print(type.foo.value)
 //
-bool add_enum_to_lua(lua_State* L, const char* tname, ...)
+static bool add_enum_to_lua(lua_State* L, const char* tname, ...)
 {
     // NOTE: Here's the Lua code we're building and executing to define the
     //       enum.
@@ -106,7 +108,7 @@ bool add_enum_to_lua(lua_State* L, const char* tname, ...)
 //   ...
 // }
 //
-bool check_enum_type(lua_State* L, const char* tname, int index)
+static bool check_enum_type(lua_State* L, const char* tname, int index)
 {
     lua_pushstring(L, "type");
     lua_gettable(L, index-1);
@@ -139,7 +141,7 @@ bool check_enum_type(lua_State* L, const char* tname, int index)
 //   ...
 // }
 //
-int get_enum_value(lua_State* L, int index)
+static int get_enum_value(lua_State* L, int index)
 {
     lua_pushstring(L, "value");
     lua_gettable(L, index-1);

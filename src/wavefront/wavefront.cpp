@@ -33,6 +33,7 @@ namespace red
         std::vector<string> vtmp;
 
         string absol(path);
+
         absol = absol.substr(0,absol.find_last_of("/\\")+1);
         bool isListObjects = false;
         if(file.is_open())

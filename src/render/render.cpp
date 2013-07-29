@@ -325,7 +325,36 @@ namespace red
         }
     }
 
+    int frameCount = 0,  previousTime;
+    void calculateFPS()
+    {
+        //  Increase frame count
+        frameCount++;
 
+        int currentTime;
+        //  Get the number of milliseconds since glutInit called
+        //  (or first call to glutGet(GLUT ELAPSED TIME)).
+        currentTime = glutGet(GLUT_ELAPSED_TIME);
+
+        //  Calculate time passed
+        int timeInterval = currentTime - previousTime;
+
+        if(timeInterval > 1000)
+        {
+            float fps;
+            //  calculate the number of frames per second
+            fps = frameCount / (timeInterval / 1000.0f);
+
+            //  Set time
+            previousTime = currentTime;
+
+            cout << "FPS: " << fps << endl;
+
+            //  Reset frame count
+            frameCount = 0;
+
+        }
+    }
 	void Rrender::render(void)
     {
 
@@ -334,7 +363,10 @@ namespace red
         glClearColor(1.0f, 1.0f, 1.0f, 1000.0f);
         glLoadIdentity();
 
-
+        if(this->scene->fog_enable)
+            this->scene->enableFog();
+        else
+            this->scene->disableFog();
         gluLookAt (this->camera->getLocX(), this->camera->getLocY(), this->camera->getLocZ(),
            this->camera->getLocTX(), this->camera->getLocTY(),this->camera->getLocTZ(),
             0,1,0);
@@ -342,10 +374,8 @@ namespace red
         this->loadLights();
         this->draw();
 
-
+        calculateFPS();
 		SDL_GL_SwapBuffers();
-		
-		
 	}
 
 	int l_Rrender_constructor(lua_State * l)

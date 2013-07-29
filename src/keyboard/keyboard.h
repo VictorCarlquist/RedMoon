@@ -1,7 +1,8 @@
-#include "SDL/SDL.h"
+#include <SDL/SDL.h>
 #include <lua5.2/lua.hpp>
 #include <iostream>
 #include <map>
+
 
 #ifndef __KEYBOARD_H__
 #define __KEYBOARD_H__

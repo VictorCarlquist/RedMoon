@@ -31,9 +31,9 @@ namespace red
 			float getRotX();
 			float getRotY();
 			float getRotZ();
-			
+            void moveAt(float x, float y, float z);
 			 
-		private:
+        private:
 			float lx,ly,lz;
 			float rx,ry,rz;
 	};

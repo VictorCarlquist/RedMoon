@@ -1,16 +1,29 @@
-﻿#include <iostream>
+﻿
+
+#include <iostream>
 #include <fstream>
 #include <cstdlib>
 #include <cstring>
 
 #include <SOIL/SOIL.h>
-
-#include "scene.h"
 #include "../render/render.h"
+#include "scene.h"
+#include "../util/lua_typed_enums.h"
+
 
 namespace red
 {
     Rscene::Rscene(){
+        this->fog_enable = false;
+        this->fog_color[0] = 1;
+        this->fog_color[1] = 1;
+        this->fog_color[2] = 1;
+        this->fog_color[3] = 1.0;
+        this->fog_density = 1;
+        this->fog_far = 100.0;
+        this->fog_near = 5.0;
+        this->fog_enable = false;
+        this->fog_type = GL_LINEAR;
 
     }
 	Rscene::~Rscene(){}
@@ -46,9 +59,47 @@ namespace red
 	{
         //this->primitive = type;
     }*/
-	
-	
-	
+
+    /*
+     * FOG Settings
+     */
+    void Rscene::enableFog()
+    {
+        glFogi(GL_FOG_MODE, this->fog_type);    // Fog Mode
+        glFogfv(GL_FOG_COLOR, this->fog_color);            // Set Fog Color
+        glFogf(GL_FOG_DENSITY, this->fog_density);              // How Dense Will The Fog Be
+        glHint(GL_FOG_HINT, GL_DONT_CARE);          // Fog Hint Value
+        glFogf(GL_FOG_START, this->fog_near);             // Fog Start Depth
+        glFogf(GL_FOG_END, this->fog_far);               // Fog End Depth
+        glEnable(GL_FOG);
+    }
+    void Rscene::disableFog()
+    {
+        glDisable(GL_FOG);
+    }
+    void Rscene::setFogColor(float r,float g, float b)
+    {
+        this->fog_color[0] = r;
+        this->fog_color[1] = g;
+        this->fog_color[2] = b;
+        this->fog_color[3] = 1;
+    }
+    void Rscene::setFogDensity(float d)
+    {
+        this->fog_density = d;
+    }
+    void Rscene::setFogNearFar(float near, float far)
+    {
+        this->fog_near = near;
+        this->fog_far = far;
+    }
+    void Rscene::setFogType(int t)
+    {
+        this->fog_type = t;
+    }
+    /*
+     * END FOG Settings
+     */
 	
 	int l_Rscene_constructor(lua_State * l)
 	{
@@ -70,6 +121,7 @@ namespace red
 	{
 		return *(Rscene **)luaL_checkudata(l, n, "luaL_Rscene");
 	}
+
 
     int l_Rscene_addWavefront(lua_State * l)
 	{
@@ -98,6 +150,53 @@ namespace red
 
 		return 0;
 	}
+    int l_Rscene_fogEnable(lua_State * l)
+    {
+        Rscene * foo = l_CheckRscene(l, 1);
+        foo->fog_enable = true;
+        return 0;
+    }
+    int l_Rscene_fogDisable(lua_State * l)
+    {
+        Rscene * foo = l_CheckRscene(l, 1);
+        foo->fog_enable = false;
+        return 0;
+    }
+    int l_Rscene_setFogColor(lua_State * l)
+    {
+        Rscene * foo = l_CheckRscene(l, 1);
+        float r,g,b;
+        r = luaL_checknumber(l, 2);
+        g = luaL_checknumber(l, 3);
+        b = luaL_checknumber(l, 4);
+        foo->setFogColor(r,g,b);
+        return 0;
+    }
+    int l_Rscene_setFogNearFar(lua_State * l)
+    {
+        Rscene * foo = l_CheckRscene(l, 1);
+        float n,f;
+        n = luaL_checknumber(l, 2);
+        f = luaL_checknumber(l, 3);
+        foo->setFogNearFar(n,f);
+        return 0;
+    }
+    int l_Rscene_setFogDensity(lua_State * l)
+    {
+        Rscene * foo = l_CheckRscene(l, 1);
+        float d;
+        d = luaL_checknumber(l, 2);
+        foo->setFogDensity(d);
+        return 0;
+    }
+    int l_Rscene_setFogType(lua_State * l)
+    {
+        Rscene * foo = l_CheckRscene(l, 1);
+        int t;
+        t = luaL_checknumber(l, 2);
+        foo->setFogType(t);
+        return 0;
+    }
 
 	void RegisterRscene(lua_State *l)
 	{
@@ -108,49 +207,31 @@ namespace red
 			{"name",},
             {"addWavefront",l_Rscene_addWavefront},
             {"addLightLamp",l_Rscene_addLightLamp},
+            {"fogEnable",l_Rscene_fogEnable},
+            {"fogDisable",l_Rscene_fogDisable},
+            {"setFogColor",l_Rscene_setFogColor},
+            {"setFogNearFar",l_Rscene_setFogNearFar},
+            {"setFogDensity",l_Rscene_setFogDensity},
+            {"setFogType",l_Rscene_setFogType},
             { NULL, NULL }
 		};
 
-		// Create a luaL metatable. This metatable is not 
-		// exposed to Lua. The "luaL_Rscene" label is used by luaL
-		// internally to identity things.
 		luaL_newmetatable(l, "luaL_Rscene");
 
-		// Register the C functions _into_ the metatable we just created.
 		//luaL_register(l, NULL, sRsceneRegs); --> VERSION <= 5.1
 		luaL_setfuncs(l,sRsceneRegs,0);
 
-		// The Lua stack at this point looks like this:
-		//     
-		//     1| metatable "luaL_Rscene"   |-1
 		lua_pushvalue(l, -1);
 
-		// The Lua stack at this point looks like this:
-		//     
-		//     2| metatable "luaL_Rscene"   |-1
-		//     1| metatable "luaL_Rscene"   |-2
-
-		// Set the "__index" field of the metatable to point to itself
-		// This pops the stack
 		lua_setfield(l, -1, "__index");
 
-		// The Lua stack at this point looks like this:
-		//     
-		//     1| metatable "luaL_Rscene"   |-1
-
-		// The luaL_Rscene metatable now has the following fields
-		//     - __gc
-		//     - __index
-		//     - add
-		//     - new
-
-		// Now we use setglobal to officially expose the luaL_Rscene metatable 
-		// to Lua. And we use the name "Rscene".
-		//
-		// This allows Lua scripts to _override_ the metatable of Rscene.
-		// For high security code this may not be called for but 
-		// we'll do this to get greater flexibility.
 		lua_setglobal(l, "Rscene");
+
+        add_enum_to_lua( l, "Rfog"
+        ,"FOG_LINEAR",GL_LINEAR
+        ,"FOG_EXP", GL_EXP
+        ,"FOG_EXP2",GL_EXP2,0);
+
 	}
-	
+
 }

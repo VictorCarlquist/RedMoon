@@ -12,7 +12,6 @@ using namespace std;
 
 namespace red
 {
-	
 	class Rrender
 	{
 		public:
