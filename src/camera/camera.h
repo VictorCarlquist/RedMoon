@@ -1,14 +1,14 @@
-#include "../locate/locate.h"
+#include "../placeable/placeable.h"
 #include <lua5.2/lua.hpp>
 
 #ifndef CAMERA_H
 #define CAMERA_H
 namespace red
 {
-    class Rcamera : public Rlocate{
+    class Rcamera : public Rplaceable{
 
         public:
-        Rcamera():Rlocate()
+        Rcamera():Rplaceable()
         {
             this->tx = 0;
             this->ty = 0;

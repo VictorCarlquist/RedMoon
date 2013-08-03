@@ -1,4 +1,4 @@
-#include "../locate/locate.h"
+#include "../placeable/placeable.h"
 
 #include <GL/glut.h>
 #include <vector>
@@ -11,7 +11,7 @@ namespace red
 		GLfloat x,y,z;
 	} Vertex3;
 
-	class Robject : public Rlocate
+	class Robject : public Rplaceable
 	{
 		public:
 			//Robject();

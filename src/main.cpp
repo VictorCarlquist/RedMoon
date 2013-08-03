@@ -7,7 +7,7 @@
 #include "scene/scene.h"
 #include "wavefront/wavefront.h"
 #include "keyboard/keyboard.h"
-#include "locate/locate.h"
+#include "placeable/placeable.h"
 #include "camera/camera.h"
 
 #include <cstdlib>     /* srand, rand */
@@ -37,7 +37,7 @@ int main(int argc, char** argv)
     RegisterRkeyboard(l);
 	RegisterRscene(l);
     RegisterRwavefront(l);
-    RegisterRlocate(l);
+    RegisterRplaceable(l);
     RegisterRcamera(l);
     RegisterRlightLamp(l);
 	

@@ -1,4 +1,4 @@
-#include "../locate/locate.h"
+#include "../placeable/placeable.h"
 #include <iostream>
 #include <GL/gl.h>
 //#include "../util/lua_typed_enums.h"
@@ -8,7 +8,7 @@
 
 namespace red {
 
-    class RlightLamp:public Rlocate{
+    class RlightLamp:public Rplaceable{
 
         public:
             RlightLamp(const char*);

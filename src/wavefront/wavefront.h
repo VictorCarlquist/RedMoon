@@ -1,5 +1,4 @@
 #include "../object/object.h"
-#include "../locate/locate.h"
 #include "../material/material.h"
 
 #include <vector>
