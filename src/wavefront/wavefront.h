@@ -43,6 +43,7 @@ namespace red
             void loadFile(const char *, bool isChild  = false);
             void loadMaterial(const char * );
             void createMesh(Rwavefront *obj);
+            void render();
 
 	};
     void RegisterRwavefront(lua_State *l);

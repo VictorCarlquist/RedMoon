@@ -358,6 +358,144 @@ namespace red
         //glVertexAttribPointer(obj->vertexId, 3, GL_FLOAT, GL_FALSE, 0, (void*)0 );
     }
 
+    void Rwavefront::render()
+    {
+        int i,j,k;
+        Rwavefront *obj;
+       
+        glPushMatrix();
+        glTranslatef (this->getLocX(), this->getLocY(), this->getLocZ());
+        glRotatef (this->getRotX(), 1,0,0);
+        glRotatef (this->getRotY(), 0,1,0);
+        glRotatef (this->getRotZ(), 0,0,1);
+        glScalef(this->getScaleX(),this->getScaleY(),this->getScaleZ());
+
+
+        if(this->listObjects.empty())
+        {
+            if(this->smooth)
+                glShadeModel(GL_SMOOTH);
+            else
+                glShadeModel(GL_FLAT);
+
+            Rmaterial *mat = this->listMaterials[this->textureName];
+
+            if(mat->textureId != 0)
+            {
+                glBindTexture(GL_TEXTURE_2D, mat->textureId);
+            }
+            if(!mat->ambient.empty())
+            {
+                glMaterialfv(GL_FRONT,GL_AMBIENT , &mat->ambient[0][0]);
+            }
+            if(!mat->diffuse.empty())
+            {
+                glMaterialfv(GL_FRONT,GL_DIFFUSE , &mat->diffuse[0][0]);
+
+            }
+
+            //glBegin(GL_TRIANGLES);
+           /*
+            for(j=0;j<this->faces.size();j++)
+            {
+                if(!this->uvs.empty())
+                    glTexCoord2f(this->uvs[this->faces[j][1]-1][0],this->uvs[this->faces[j][1]-1][1]);
+               // cout << this->uvs[this->faces[j][1]-1][0] << endl;
+                if(!this->normals.empty())
+                    glNormal3f(this->normals[this->faces[j][2]-1][0],this->normals[this->faces[j][2]-1][1],this->normals[this->faces[j][2]-1][2]);
+               // glVertex3f(this->vertices[this->faces[j][0]-1][0],this->vertices[this->faces[j][0]-1][1],this->vertices[this->faces[j][0]-1][2] );
+
+            }
+            glEnd();
+            */
+
+            int x = 6;
+            if(this->isUv)
+                x = 9;
+            glEnableClientState(GL_NORMAL_ARRAY);
+            glEnableClientState(GL_VERTEX_ARRAY);
+
+            if(this->isUv)
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                //glBindBuffer(GL_ARRAY_BUFFER, this->vertexId);
+
+                glNormalPointer(GL_FLOAT, x * sizeof(GLfloat), &this->mesh[0] + 3);
+            if(this->isUv)
+                glTexCoordPointer(2, GL_FLOAT, 9 * sizeof(GLfloat), &this->mesh[0] + 6);
+            glVertexPointer(3, GL_FLOAT,x * sizeof(GLfloat), &this->mesh[0]);
+
+                glDrawArrays(GL_TRIANGLES,0,(sizeof(float)*this->mesh.size())/sizeof(float)/x);
+            if(this->isUv)
+               glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_NORMAL_ARRAY);
+        }else{
+
+            for(k = 0; k < this->listObjects.size();++k)
+            {
+
+                Rwavefront *lObj;
+                lObj = this->listObjects[k];
+
+
+                if(lObj->smooth)
+                    glShadeModel(GL_SMOOTH);
+                else
+                    glShadeModel(GL_FLAT);
+
+
+                Rmaterial *mat;
+                if(lObj->textureName != "")
+                    mat = this->listMaterials[lObj->textureName];
+                else
+                    mat = this->listMaterials[this->textureName];
+
+                    if(mat->textureId != 0)
+                    {
+                        glBindTexture(GL_TEXTURE_2D, mat->textureId);
+                    }
+                    if(!mat->ambient.empty())
+                    {
+                        glMaterialfv(GL_FRONT,GL_AMBIENT , &mat->ambient[0][0]);
+
+                    }
+                    if(!mat->diffuse.empty())
+                    {
+
+                        glMaterialfv(GL_FRONT,GL_DIFFUSE , &mat->diffuse[0][0]);
+
+                    }
+
+
+                int x = 6;
+                if(lObj->isUv)
+                    x = 9;
+                glEnableClientState(GL_NORMAL_ARRAY);
+                glEnableClientState(GL_VERTEX_ARRAY);
+                if(lObj->isUv)
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    //glBindBuffer(GL_ARRAY_BUFFER, this->vertexId);
+
+                glVertexPointer(3, GL_FLOAT,sizeof(float)*x, &lObj->mesh[0]);
+                glNormalPointer(GL_FLOAT, sizeof(float)*x, &lObj->mesh[0]+3);
+                if(lObj->isUv)
+                    glTexCoordPointer(2, GL_FLOAT, 9 * sizeof(float), &lObj->mesh[0] + 6);
+
+                glDrawArrays(GL_TRIANGLES,0,lObj->mesh.size()/x);
+
+                if(lObj->isUv)
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                glDisableClientState(GL_VERTEX_ARRAY);
+                glDisableClientState(GL_NORMAL_ARRAY);
+
+            }
+        }
+
+        glPopMatrix();
+    }
+
+
+//LUA
     Rwavefront * l_CheckRwavefront(lua_State * l, int n)
 	{
 		return *(Rwavefront **)luaL_checkudata(l, n, "luaL_Rwavefront");
